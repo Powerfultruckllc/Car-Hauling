@@ -57,10 +57,16 @@
   <footer><div class="wrap footer-row"><div><strong>CAR HAULING</strong></div><div>Telegram: @Igor520780 · WhatsApp: +380 96 849 0445 · Phone: +1 (657) 202-4344</div></div></footer>
   <div class="floating"><a class="tg" href="https://t.me/Igor520780" target="_blank" rel="noopener">Telegram</a><a class="wa" href="https://wa.me/380968490445" target="_blank" rel="noopener">WhatsApp</a><a class="call" href="tel:+16572024344">Звонок</a></div>
   <script>
-    document.getElementById('leadForm').addEventListener('submit',function(event){event.preventDefault();const name=document.getElementById('name').value.trim();const phone=document.getElementById('phoneInput').value.trim();const message=document.getElementById('message').value.trim();const text=['Здравствуйте! Интересует работа на пикап-траке.','Имя: '+name,'Телефон: '+phone,'Сообщение: '+(message||'-')].join('\n');if(window.fbq)fbq('track','Contact',{content_category:'whatsapp_form'});window.open('https://wa.me/380968490445?text='+encodeURIComponent(text),'_blank','noopener')});
-    document.querySelectorAll('a[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){if(window.fbq)fbq('track','Contact',{content_category:'phone_call'})})});
-    document.querySelectorAll('a[href*="wa.me"]').forEach(function(el){el.addEventListener('click',function(){if(window.fbq)fbq('track','Contact',{content_category:'whatsapp_click'})})});
-    document.querySelectorAll('a[href*="t.me"]').forEach(function(el){el.addEventListener('click',function(){if(window.fbq)fbq('track','Contact',{content_category:'telegram_click'})})});
+    function getCookie(name){const m=document.cookie.match('(^|;)\\s*'+name+'\\s*=\\s*([^;]+)');return m?m.pop():'';}
+    function sendContact(category, phone){
+      const eventId=(window.crypto&&crypto.randomUUID)?crypto.randomUUID():'ev_'+Date.now()+'_'+Math.random().toString(36).slice(2);
+      if(window.fbq)fbq('track','Contact',{content_category:category},{eventID:eventId});
+      fetch('/.netlify/functions/capi-event',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({event_name:'Contact',event_id:eventId,event_source_url:location.href,fbp:getCookie('_fbp'),fbc:getCookie('_fbc'),phone:phone||undefined})}).catch(function(){});
+    }
+    document.getElementById('leadForm').addEventListener('submit',function(event){event.preventDefault();const name=document.getElementById('name').value.trim();const phone=document.getElementById('phoneInput').value.trim();const message=document.getElementById('message').value.trim();const text=['Здравствуйте! Интересует работа на пикап-траке.','Имя: '+name,'Телефон: '+phone,'Сообщение: '+(message||'-')].join('\n');sendContact('whatsapp_form',phone);window.open('https://wa.me/380968490445?text='+encodeURIComponent(text),'_blank','noopener')});
+    document.querySelectorAll('a[href^="tel:"]').forEach(function(el){el.addEventListener('click',function(){sendContact('phone_call')})});
+    document.querySelectorAll('a[href*="wa.me"]').forEach(function(el){el.addEventListener('click',function(){sendContact('whatsapp_click')})});
+    document.querySelectorAll('a[href*="t.me"]').forEach(function(el){el.addEventListener('click',function(){sendContact('telegram_click')})});
   </script>
 </body>
 </html>
